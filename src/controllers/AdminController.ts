@@ -56,7 +56,7 @@ export const handleBulkUpload = async (req: Request, res: Response): Promise<voi
 
 // Add a result
 export const addResult = async (req: Request, res: Response): Promise<void> => {
-    const { studentId, subject, marks, semester } = req.body;
+    const { studentId, subject, marks, semester,date } = req.body;
     try {
         const result = await prisma.result.create({
             data: {
@@ -64,6 +64,7 @@ export const addResult = async (req: Request, res: Response): Promise<void> => {
                 subject,
                 marks,
                 semester,
+                date
             },
         });
         res.status(201).json({ message: 'Result added successfully', result });
