@@ -1,0 +1,1 @@
+{"root":["./src/app.ts","./src/config/db.ts","./src/controllers/AdminController.ts","./src/controllers/StudentController.ts","./src/models/data.ts","./src/routes/AdminRoutes.ts","./src/routes/StudentRoutes.ts"],"errors":true,"version":"5.7.3"}
