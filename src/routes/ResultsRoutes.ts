@@ -1,8 +1,9 @@
 import express from 'express';
-import { getResult } from '../controllers/ResultController';
+import {getAllResults, getLatestResult} from '../controllers/ResultController';
 
 const router = express.Router();
 
-router.get('/:studentId', getResult);
+router.get('/:studentId/latest', getLatestResult);
+router.get('/:studentId/all', getAllResults);
 
 export default router;
