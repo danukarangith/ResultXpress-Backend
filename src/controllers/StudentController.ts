@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/db';  // Prisma client import
 
 export const addStudent = async (req: Request, res: Response) => {
-    const { studentId, name, email, password } = req.body;
+    const { studentId, name, email, password ,adminId} = req.body;
     try {
         // Using Prisma to add a new student record
         const student = await prisma.student.create({
@@ -13,6 +13,7 @@ export const addStudent = async (req: Request, res: Response) => {
                 name,
                 email,
                 password,
+                adminId,
             },
         });
 
