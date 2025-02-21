@@ -33,10 +33,11 @@ model Student {
 }
 
 model Result {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   studentId String
   subject   String
   marks     Int
   semester  String
-  student   Student @relation(fields: [studentId], references: [studentId]) // Link to Student
+  date      DateTime
+  student   Student  @relation(fields: [studentId], references: [studentId]) // Link to Student
 }
