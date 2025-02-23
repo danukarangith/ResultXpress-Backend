@@ -1,18 +1,22 @@
 import { Request, Response } from 'express';
 import prisma from '../config/db';
+import bcrypt from 'bcryptjs';
 
 // Add Student
 export const addStudent = async (req: Request, res: Response): Promise<void> => {
     try {
         const { studentId, name, email, password, adminId } = req.body;
 
+        // Hash the password before saving it to the database
+        const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
+
         const student = await prisma.student.create({
-            data: { studentId, name, email, password, adminId },
+            data: { studentId, name, email, password: hashedPassword, adminId },
         });
 
         res.status(201).json({ message: 'Student added successfully', student });
     } catch (error) {
-         res.status(500).json({ message: 'Error adding student', error: (error as Error).message });
+        res.status(500).json({ message: 'Error adding student', error: (error as Error).message });
     }
 };
 
