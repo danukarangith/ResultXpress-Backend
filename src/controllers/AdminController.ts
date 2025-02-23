@@ -4,6 +4,7 @@ import prisma from '../config/db';
 import { uploadResults } from '../utils/excel-utils';
 import multer from 'multer';
 import router from "../routes/AdminRoutes";
+import bcrypt from 'bcrypt';
 
 
 
@@ -123,7 +124,79 @@ export const deleteResult = async (req: Request, res: Response): Promise<void> =
             res.status(500).json({ message: 'An unknown error occurred' });
         }
     }
+
+
+    // Add an admin
+
 };
+export const addAdmin = async (req: Request, res: Response): Promise<void> => {
+    const { username, email, password } = req.body;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const admin = await prisma.admin.create({
+            data: {
+                username,
+                email,
+                password: hashedPassword,
+            },
+        });
+        res.status(201).json({ message: 'Admin added successfully', admin });
+    } catch (error: unknown) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            res.status(500).json({ message: 'Prisma error', errorCode: error.code });
+        } else if (error instanceof Error) {
+            res.status(500).json({ message: 'Error adding admin', error: error.message });
+        } else {
+            res.status(500).json({ message: 'An unknown error occurred' });
+        }
+    }
+};
+
+// Edit an admin
+export const editAdmin = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    const { username, email, password } = req.body;
+    try {
+        const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
+        const admin = await prisma.admin.update({
+            where: { id: Number(id) },
+            data: {
+                username,
+                email,
+                ...(hashedPassword && { password: hashedPassword }),
+            },
+        });
+        res.status(200).json({ message: 'Admin updated successfully', admin });
+    } catch (error: unknown) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+            res.status(404).json({ message: 'Admin not found' });
+        } else if (error instanceof Error) {
+            res.status(500).json({ message: 'Error updating admin', error: error.message });
+        } else {
+            res.status(500).json({ message: 'An unknown error occurred' });
+        }
+    }
+};
+
+// Delete an admin
+export const deleteAdmin = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    try {
+        const admin = await prisma.admin.delete({
+            where: { id: Number(id) },
+        });
+        res.status(200).json({ message: 'Admin deleted successfully', admin });
+    } catch (error: unknown) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+            res.status(404).json({ message: 'Admin not found' });
+        } else if (error instanceof Error) {
+            res.status(500).json({ message: 'Error deleting admin', error: error.message });
+        } else {
+            res.status(500).json({ message: 'An unknown error occurred' });
+        }
+    }
+};
+
 
 // // Upload bulk results (from an Excel file)
 // export const uploadBulkResults = async (req: Request, res: Response): Promise<void> => {
