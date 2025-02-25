@@ -3,7 +3,7 @@ import {
     addAdmin,
     addResult, deleteAdmin,
     deleteResult, editAdmin,
-    editResult,
+    editResult, getAllAdmins, getAllResults,
     handleBulkUpload,
     uploadBulkResults
 } from '../controllers/AdminController';
@@ -18,6 +18,8 @@ router.post('/upload-results', uploadBulkResults, handleBulkUpload);
 router.post('/add-admin', addAdmin)
 router.put('/edit-admin/:id', editAdmin)
 router.delete('/delete-admin/:id', deleteAdmin)
+router.get('/getAllAdmins', getAllAdmins);
+router.get('/getResults',getAllResults)
 
 
 

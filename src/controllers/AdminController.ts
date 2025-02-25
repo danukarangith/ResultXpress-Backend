@@ -106,6 +106,21 @@ export const editResult = async (req: Request, res: Response): Promise<void> => 
         }
     }
 };
+// Get all results
+export const getAllResults = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const results = await prisma.result.findMany();
+
+        res.status(200).json({ message: 'Results fetched successfully', results });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ message: 'Error fetching results', error: error.message });
+        } else {
+            res.status(500).json({ message: 'An unknown error occurred' });
+        }
+    }
+};
+
 
 // Delete a result
 export const deleteResult = async (req: Request, res: Response): Promise<void> => {
@@ -126,7 +141,7 @@ export const deleteResult = async (req: Request, res: Response): Promise<void> =
     }
 
 
-    // Add an admin
+
 
 };
 export const addAdmin = async (req: Request, res: Response): Promise<void> => {
@@ -196,6 +211,20 @@ export const deleteAdmin = async (req: Request, res: Response): Promise<void> =>
         }
     }
 };
+// Get all admins
+export const getAllAdmins = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const admins = await prisma.admin.findMany(); // Fetch all admins
+        res.status(200).json({ message: 'Admins retrieved successfully', admins });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ message: 'Error retrieving admins', error: error.message });
+        } else {
+            res.status(500).json({ message: 'An unknown error occurred' });
+        }
+    }
+};
+
 
 
 // // Upload bulk results (from an Excel file)
