@@ -32,7 +32,7 @@ const generateToken = (user: User): string => {
     }
 
     return jwt.sign(
-        { id: user.id, email: user.email, role: 'STUDENT' },
+        { id: user.studentId, email: user.email, role: 'STUDENT' },
         process.env.JWT_SECRET as string,
         { expiresIn: '1h' }
     );
