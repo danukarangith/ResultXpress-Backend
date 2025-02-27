@@ -2,7 +2,10 @@
 
 [![React](https://img.shields.io/badge/React-18.2.0-blue)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0.2-blue)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.3.2-blue)](https://tailwindcss.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-18.14.2-green)](https://nodejs.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-4.11.0-blue)](https://www.prisma.io/)
+[![Express](https://img.shields.io/badge/Express-4.18.2-blue)](https://expressjs.com/)
+
 
 A web-based result checking system with separate dashboards for administrators and students. Built with React, TypeScript, and Tailwind CSS.
 
