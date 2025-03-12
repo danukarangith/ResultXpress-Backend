@@ -5,29 +5,52 @@ import { uploadResults } from '../utils/excel-utils';
 import multer from 'multer';
 import router from "../routes/AdminRoutes";
 import bcrypt from 'bcrypt';
+import { sendEmail as sendEmailService } from "../utils/emailService";
+
+
+import nodemailer from "nodemailer";
 
 
 
 
 
-// Define storage settings for Multer
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/'); // Specify folder where files will be saved
+        cb(null, 'uploads/');
     },
     filename: (req, file, cb) => {
-        cb(null, `${Date.now()}_${file.originalname}`); // Unique file name to avoid overwrite
+        cb(null, `${Date.now()}_${file.originalname}`);
     },
 });
 
-// Setup multer with storage settings
+
 const upload = multer({ storage });
 
-// Middleware for handling single file upload
+
 export const uploadBulkResults = upload.single('file');
 
-// Controller to handle the file upload and process the file
-export const handleBulkUpload = async (req: Request, res: Response): Promise<void> => {  // ❌ Removed "Response" return type
+
+const sendEmail = async (recipient: string, filePath: string): Promise<void> => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER, // Use your Gmail
+            pass: process.env.EMAIL_APP_PASSWORD, // Use an App Password
+        },
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: recipient,
+        subject: 'Results Upload Successful',
+        text: `The results file has been successfully uploaded and processed.\n\nFile Path: ${filePath}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+};
+
+
+export const handleBulkUpload = async (req: Request, res: Response): Promise<void> => {
     if (!req.file) {
         res.status(400).json({ message: 'No file uploaded' });
         return;
@@ -36,29 +59,51 @@ export const handleBulkUpload = async (req: Request, res: Response): Promise<voi
     const filePath = `uploads/${req.file.filename}`;
 
     try {
-        await uploadResults(filePath);  // Function to process the uploaded Excel file
-        res.status(200).json({ message: 'Results uploaded successfully' });  // ✅ Just send response
+        // Process the Excel file and extract student data
+        const uploadedResults = await uploadResults(filePath);
+
+        console.log("✅ File uploaded successfully, sending emails...");
+
+        // Get all student emails from database
+        const students = await prisma.student.findMany({
+            select: { email: true },
+        });
+        const studentEmails = students.map(student => student.email);
+
+        if (studentEmails.length > 0) {
+            // Send email notifications to all students
+            const emailSubject = "📢 New Exam Results Available!";
+            const emailText = `Dear Students,\n\nNew results have been uploaded. Check your student portal for details.\n\nBest regards,\nAdmin`;
+
+            await sendEmailService(studentEmails, emailSubject, emailText);
+            console.log("📩 Bulk email sent successfully!");
+        } else {
+            console.log("⚠️ No students found to send emails.");
+        }
+
+        res.status(200).json({ message: 'Results uploaded successfully, and emails sent.' });
+
     } catch (error: unknown) {
-        // Check if error is an instance of Error
+        console.error("❌ Error in handleBulkUpload:", error);
+
         if (error instanceof Error) {
             res.status(500).json({ message: 'Error uploading results', error: error.message });
             return;
         }
-        // In case error is not of type Error
         res.status(500).json({ message: 'Unknown error occurred' });
     }
 };
 
-// Register the route
-// router.post('/upload-results', uploadBulkResults, handleBulkUpload);
 
 
 
 
-// Add a result
+
 export const addResult = async (req: Request, res: Response): Promise<void> => {
-    const { studentId, subject, marks, semester,date } = req.body;
+    const { studentId, subject, marks, semester, date } = req.body;
+
     try {
+
         const result = await prisma.result.create({
             data: {
                 studentId,
@@ -68,7 +113,23 @@ export const addResult = async (req: Request, res: Response): Promise<void> => {
                 date
             },
         });
-        res.status(201).json({ message: 'Result added successfully', result });
+
+
+        const students = await prisma.student.findMany({
+            select: { email: true },
+        });
+
+        const studentEmails = students.map(student => student.email);
+
+
+        const emailSubject = "📢 New Exam Results Available!";
+        const emailText = `Dear Students,\n\nNew results for ${subject} (Semester: ${semester}) have been updated.\n\nCheck your student portal for details.\n\nBest regards,\nAdmin`;
+
+        await sendEmailService(studentEmails, emailSubject, emailText);
+
+
+        res.status(201).json({ message: 'Result added successfully and emails sent!', result });
+
     } catch (error: unknown) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             res.status(500).json({ message: 'Prisma error', errorCode: error.code });
@@ -79,6 +140,7 @@ export const addResult = async (req: Request, res: Response): Promise<void> => {
         }
     }
 };
+
 
 // Edit a result
 export const editResult = async (req: Request, res: Response): Promise<void> => {
